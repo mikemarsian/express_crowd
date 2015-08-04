@@ -74,5 +74,6 @@ router.put('/:invoiceId/assignments/:assignId', function(request, response, next
     });
 });
 
+// TODO: report_hit_and_next(), background job that looks for old 'started' that weren't completed
 
 module.exports = router;
