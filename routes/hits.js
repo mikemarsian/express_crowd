@@ -12,7 +12,7 @@ router.post('/', function(request, response, next) {
         scanUrl : request.body.scanUrl
     }, function (err, hit) {
         if (err || !hit) {
-            res.send(500, "There was a problem adding the information to the database.");
+            return next(err);
         } else {
             console.log('POST creating new hit: ' + hit);
             response.status(200).json(hit);
@@ -25,16 +25,14 @@ router.post('/', function(request, response, next) {
 router.get('/assignment', function(request, response, next) {
     var callback = function(err, hit, result){
         if(err || !hit) {
-            console.log('Not found');
-            response.status(200).send('No hits available at this time. Try again in a few minutes')
+            return next({status: 200, message: 'No hits available at this time. Try again in a few minutes'});
         } else {
-            assignment = mongoose.model('Assignment').create({invoiceId: hit.invoiceId, workerName: 'Mike'});
+            var assignment = new Assignment({workerName: 'Mike'});
             hit.assignments.$shift(); // overwrite assignment at index 0
             hit.assignments.push(assignment); // FYI push returns the new lenght of the array
             hit.save(function(err, hit){
                 if (err){
-                    console.log('Error!')
-                    response.status(500).end();
+                    return next(err);
                 } else {
                     console.log('Found assignment!')
                     var result = {invoiceId: hit.invoiceId, assignment: hit.assignments[0].toJSON()};
@@ -51,24 +49,27 @@ router.get('/assignment', function(request, response, next) {
 // Update assignment, when completed
 router.put('/:invoiceId/assignments/:assignId', function(request, response, next) {
     Hit.findOne({invoiceId: request.params.invoiceId}, function(err, hit){
-       if(err || !hit) {
-           console.log('Error!')
-           response.status(404).end();
+       if(err) {
+           return next(err);
+       } else if(!hit) {
+           return next({status: 404, message: 'Hit not found'});
        } else if(hit.completed >= requiredResults) {
-           response.status(200).end('This hit is already completed');
+           return next({status: 200, message: 'This hit is already completed'});
        }else {
            assignment = hit.assignments.id(request.params.assignId);
-           assignment.complete(request.body)
-           console.log('assignment: '+assignment)
+           if(!assignment) {
+               return next({status: 404, message: 'Assignment not found'});
+           }
+           assignment.complete(request.body);
+           hit.completed += 1;
            hit.save(function(err, hit){
-               if(err || !hit) {
-                   console.log('Error! ' + err);
-                   response.status(404).end();
+               if(err) {
+                   return next(err);
                } else {
                    console.log('Updated assignment!');
                    response.status(200).json(assignment);
                }
-           })
+           });
        }
     });
 });
