@@ -1,13 +1,6 @@
 var mongoose = require('mongoose');
 
-var hitSchema = new mongoose.Schema({
-    invoiceId: Number,
-    scanUrl: String,
-    started: {type: Number, default: 0},
-    completed: {type: Number, default: 0},
-    assignments: [{type: mongoose.Schema.Types.ObjectId, ref: 'Assignment'}]
-});
-
+// Assignment
 var assignmentSchema = new mongoose.Schema({
     country: String,
     category: String,
@@ -17,12 +10,33 @@ var assignmentSchema = new mongoose.Schema({
     completedAt: Date,
     worker: {type: mongoose.Schema.Types.ObjectId, ref: 'Worker'}
 });
+Assignment = mongoose.model('Assignment', assignmentSchema);
 
+
+// Hit is the job created for each invoice
+var hitSchema = new mongoose.Schema({
+    invoiceId: Number,
+    scanUrl: String,
+    started: {type: Number, default: 0},
+    completed: {type: Number, default: 0},
+    createdAt: {type: Date, default: Date.now},
+    assignments: []
+});
+hitSchema.set('toJSON', {
+    transform: function(doc, ret, options) {
+        var retJson = {
+            invoiceId: ret.invoiceId,
+            scanUrl: ret.scanUrl
+        };
+        return retJson;
+    }
+});
+Hit = mongoose.model('Hit', hitSchema);
+
+
+
+// Worker
 var workerSchema = new mongoose.Schema({
    email: {type: String, require: true}
 });
-
-
-Hit = mongoose.model('Hit', hitSchema);
-Assignment = mongoose.model('Assignment', assignmentSchema);
 Worker = mongoose.model('Worker', workerSchema);
