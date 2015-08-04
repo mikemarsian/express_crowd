@@ -4,23 +4,31 @@ var mongoose = require('mongoose');
 var assignmentSchema = new mongoose.Schema({
     country: String,
     category: String,
-    date: Date,
+    currency: String,
+    amount: Number,
     // meta-data
     startedAt: {type : Date, default: Date.now},
     completedAt: Date,
-    worker: {type: mongoose.Schema.Types.ObjectId, ref: 'Worker'}
+    workerName: String // change to {type: mongoose.Schema.Types.ObjectId, ref: 'Worker'}
 });
+assignmentSchema.methods.complete = function(request_body) {
+    this.completedAt = Date.now();
+    this.country = request_body.country;
+    this.category = request_body.category;
+    this.currency = request_body.currency;
+    this.amount = request_body.amount;
+};
 Assignment = mongoose.model('Assignment', assignmentSchema);
 
 
 // Hit is the job created for each invoice
 var hitSchema = new mongoose.Schema({
-    invoiceId: Number,
+    invoiceId: {type: Number, unique : true},
     scanUrl: String,
     started: {type: Number, default: 0},
     completed: {type: Number, default: 0},
     createdAt: {type: Date, default: Date.now},
-    assignments: []
+    assignments: [assignmentSchema]
 });
 hitSchema.set('toJSON', {
     transform: function(doc, ret, options) {
@@ -32,7 +40,6 @@ hitSchema.set('toJSON', {
     }
 });
 Hit = mongoose.model('Hit', hitSchema);
-
 
 
 // Worker
