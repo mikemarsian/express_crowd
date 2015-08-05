@@ -10,7 +10,7 @@ var users = require('./routes/users');
 var hits = require('./routes/hits');
 
 var db = require('./config/db');
-var schema = require('./models/schema');
+
 
 var app = express();
 

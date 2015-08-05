@@ -3,6 +3,10 @@ var router = express.Router();
 var mongoose = require('mongoose');
 var config = require('config');
 
+Hit = require('../models/hit').model;
+Assignemnt = require('../models/assignment').model;
+Worker = require('../models/worker').model;
+
 var requiredResults = config.get('app.requiredAssignments');
 
 // Create a new hit
